@@ -1,117 +1,119 @@
-const $notesTitle = $(".note-title");
-const $notesText = $(".note-textarea");
-const $saveNotesBtn = $(".save-note");
+const $noteTitle = $(".note-title");
+const $noteText = $(".note-textarea");
+const $saveNoteBtn = $(".save-note");
 const $newNoteBtn = $(".new-note");
-const $notesList = $(".list-container .list-group");
+const $noteList = $(".list-container .list-group");
 
-let currentNote = {};
+let activeNote = {};
 
 const getNotes = () => {
-    return $.ajax({
-        url: "/api/notes",
-        method: "GET",
-    });
+  return $.ajax({
+    url: "/api/notes",
+    method: "GET",
+  });
 };
 
-const saveNotes = (note) => {
-    return $.ajax({
-        url: "api/notes",
-        data: note,
-        method: "POST",
-    });
+const saveNote = (note) => {
+  return $.ajax({
+    url: "/api/notes",
+    data: note,
+    method: "POST",
+  });
 };
 
-const deleteNotes = (id) => {
-    return $.ajax({
-        url: "api/notes" + id,
-        method: "DELETE",
-    });
+const deleteNote = (id) => {
+  return $.ajax({
+    url: "api/notes/" + id,
+    method: "DELETE",
+  });
 };
 
-const displayActiveNotes = () => {
-    $saveNotesBtn.hide();
-  
-    if (currentNote.id) {
-      $notesTitle.attr("readonly", true);
-      $notesText.attr("readonly", true);
-      $notesTitle.val(currentNote.title);
-      $notesText.val(currentNote.text);
-    } else {
-      $notesTitle.attr("readonly", false);
-      $notesText.attr("readonly", false);
-      $notesTitle.val("");
-      $notesText.val("");
-    }
-};
+const renderActiveNote = () => {
+  $saveNoteBtn.hide();
 
-const createNoteId = () => {
-    const characterList = "abcdefghijklmnopqrstuvwxyz";
-    const charArray = characterList.split("");
-    const numberList = "1234567890";
-    const numbArray = numberList.split("");
-    let idHolder = [];
-    for (let i = 0; i < 2; i++) {
-      let characterSelect = charArray[Math.floor(Math.random() * charArray.length)];
-      idHolder.push(characterSelect);
-    }
-    for (let i = 0; i < 2; i++) {
-      let numberSelect = numbArray[Math.floor(Math.random() * numbArray.length)];
-      idHolder.push(numberSelect);
-    }
-    let newId = idHolder.join("");
-    return newId;
+  if (activeNote.id) {
+    $noteTitle.attr("readonly", true);
+    $noteText.attr("readonly", true);
+    $noteTitle.val(activeNote.title);
+    $noteText.val(activeNote.text);
+  } else {
+    $noteTitle.attr("readonly", false);
+    $noteText.attr("readonly", false);
+    $noteTitle.val("");
+    $noteText.val("");
+  }
+};
+ 
+const handleNoteId = () => {
+  const characterList = "abcdefghijklmnopqrstuvwxyz";
+  const charArr = characterList.split("");
+  const numberList = "1234567890";
+  const numbArr = numberList.split("");
+  let idHolder = [];
+  for (let i = 0; i < 2; i++) {
+    let characterSelect = charArr[Math.floor(Math.random() * charArr.length)];
+    idHolder.push(characterSelect);
+  }
+  for (let i = 0; i < 2; i++) {
+    let numberSelect = numbArr[Math.floor(Math.random() * numbArr.length)];
+    idHolder.push(numberSelect);
+  }
+  let newId = idHolder.join("");
+  return newId;
 }
 
-const handleNotesSaved = function () {
-    const newNote = {
-      title: $notesTitle.val(),
-      text: $notesText.val(),
-      id: createNoteId()
-    };
-    saveNotes(newNote).then(() => {
-      getAndRenderNotes();
-      renderActiveNote();
-    });
+const handleNoteSave = function () {
+  const newNote = {
+    title: $noteTitle.val(),
+    text: $noteText.val(),
+    id: handleNoteId()
+  };
+
+  saveNote(newNote).then(() => {
+    getAndRenderNotes();
+    renderActiveNote();
+  });
 };
 
-const handleNotesDeleted = function (event) {
-    event.stopPropagation();
-  
-const note = $(this).parent(".list-group-item").data();
-  
-    if (currentNote.id === note.id) {
-      currentNote = {};
-    }
-    deleteNotes(note.id).then(() => {
-      getAndRenderNotes();
-      displayActiveNotes();
-    });
+const handleNoteDelete = function (event) {
+  event.stopPropagation();
+
+  const note = $(this).parent(".list-group-item").data();
+
+  if (activeNote.id === note.id) {
+    activeNote = {};
+  }
+
+  deleteNote(note.id).then(() => {
+    getAndRenderNotes();
+    renderActiveNote();
+  });
 };
-  
-const handleNotesViewed = function () {
-    currentNote = $(this).data();
-    displayActiveNotes();
+
+const handleNoteView = function () {
+  activeNote = $(this).data();
+  renderActiveNote();
 };
-  
-const handleNewNotesViewed = function () {
-    currentNote = {};
-    displayActiveNotes();
+
+const handleNewNoteView = function () {
+  activeNote = {};
+  renderActiveNote();
 };
 
 const handleRenderSaveBtn = function () {
-    if (!$notesTitle.val().trim() || !$notesText.val().trim()) {
-      $saveNotesBtn.hide();
-    } else {
-      $saveNotesBtn.show();
-    }
+  if (!$noteTitle.val().trim() || !$noteText.val().trim()) {
+    $saveNoteBtn.hide();
+  } else {
+    $saveNoteBtn.show();
+  }
 };
 
-const displayNotesList = (notes) => {
-    $notesList.empty();
-  
-const noteListItems = [];
+const renderNoteList = (notes) => {
+  $noteList.empty();
 
-const create$li = (text, withDeleteButton = true) => {
+  const noteListItems = [];
+
+  const create$li = (text, withDeleteButton = true) => {
     const $li = $("<li class='list-group-item'>");
     const $span = $("<span>").text(text);
     $li.append($span);
@@ -123,7 +125,7 @@ const create$li = (text, withDeleteButton = true) => {
       $li.append($delBtn);
     }
     return $li;
-};
+  };
 
   if (notes.length === 0) {
     noteListItems.push(create$li("No saved Notes", false));
@@ -138,14 +140,14 @@ const create$li = (text, withDeleteButton = true) => {
 };
 
 const getAndRenderNotes = () => {
-    return getNotes().then(displayNotesList);
+  return getNotes().then(renderNoteList);
 };
 
-$saveNotesBtn.on("click", handleNotesSaved);
-$notesList.on("click", ".list-group-item", handleNotesViewed);
-$newNoteBtn.on("click", handleNewNotesViewed);
-$notesList.on("click", ".delete-note", handleNotesDeleted);
-$notesTitle.on("keyup", handleRenderSaveBtn);
-$notesText.on("keyup", handleRenderSaveBtn);
+$saveNoteBtn.on("click", handleNoteSave);
+$noteList.on("click", ".list-group-item", handleNoteView);
+$newNoteBtn.on("click", handleNewNoteView);
+$noteList.on("click", ".delete-note", handleNoteDelete);
+$noteTitle.on("keyup", handleRenderSaveBtn);
+$noteText.on("keyup", handleRenderSaveBtn);
 
 getAndRenderNotes();
