@@ -66,7 +66,7 @@ const handleNotesSaved = function () {
     const newNote = {
       title: $notesTitle.val(),
       text: $notesText.val(),
-      id: handleNoteId()
+      id: createNoteId()
     };
     saveNotes(newNote).then(() => {
       getAndRenderNotes();
@@ -138,7 +138,7 @@ const create$li = (text, withDeleteButton = true) => {
 };
 
 const getAndRenderNotes = () => {
-    return getNotes().then(renderNoteList);
+    return getNotes().then(displayNotesList);
 };
 
 $saveNotesBtn.on("click", handleNotesSaved);
